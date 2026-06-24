@@ -1,7 +1,7 @@
 import requests, os, time, subprocess, sys
 
 M_ID = 5
-db_url = "https://remote-pc-cont-default-rtdb.asia-southeast1.firebasedatabase.app/"
+db_url = "https://rpcc-dep-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
 path = os.path.abspath(sys.argv[0])
 to_delete = False
@@ -19,7 +19,7 @@ while True:
 
         if isThisMachine:
             if(cmd == 0):
-                time.sleep(data.get("time"))
+                time.sleep(data.get("sleep_time"))
                 continue
 
             elif cmd != 0:
@@ -40,7 +40,11 @@ while True:
                         to_delete = True
                         break
         else:
-            time.sleep(60)
+            try:
+                time.sleep(data.get("default_sleep_time"))
+            except Exception as e:
+                exp = e
+                time.sleep(60)
 
     except Exception as e:
         exp = e
